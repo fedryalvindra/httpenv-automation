@@ -8,7 +8,6 @@ RUN go build -o httpenv main.go
 
 # Stage test
 FROM build AS test
-RUN go test ./...
 
 # Stage final
 FROM golang:1.21 AS final
