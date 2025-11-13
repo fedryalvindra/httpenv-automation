@@ -22,15 +22,15 @@ services:
     networks:
       - testnet
     entrypoint: ["/bin/sh", "-c"]
-    command: >
-      "echo 'Running integration test...';
-       response=$(curl -s -o /dev/null -w '%{http_code}' http://httpenv:8888);
-       if [ \"$response\" = \"200\" ]; then
-         echo '✅ Integration test passed (HTTP 200 OK)';
-       else
-         echo '❌ Integration test failed (status $response)';
-         exit 1;
-       fi"
+    command: |
+      echo 'Running integration test...';
+      response=$(curl -s -o /dev/null -w '%{http_code}' http://httpenv:8888);
+      if [ "$response" = "200" ]; then
+        echo '✅ Integration test passed (HTTP 200 OK)';
+      else
+        echo '❌ Integration test failed (status $response)';
+        exit 1;
+      fi
 
 networks:
   testnet:
