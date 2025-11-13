@@ -3,14 +3,13 @@ version: "3.9"
 services:
   httpenv:
     image: "${TESTING_IMAGE}"
-    container_name: httpenv-app
     ports:
       - "8888:8888"
     healthcheck:
-      test: ["CMD", "wget", "-qO-", "http://localhost:8888"]
+      test: ["CMD-SHELL", "curl -s http://localhost:8888 > /dev/null || exit 1"]
       interval: 5s
       timeout: 3s
-      retries: 5
+      retries: 10
     networks:
       - testnet
 
@@ -23,13 +22,24 @@ services:
       - testnet
     entrypoint: ["/bin/sh", "-c"]
     command: |
-      echo 'Running integration test...';
-      response=$(curl -s -o /dev/null -w '%{http_code}' http://httpenv:8888);
+      echo "Waiting for httpenv to be ready..."
+      for i in $(seq 1 30); do
+        response=$(curl -s -o /dev/null -w '%{http_code}' http://httpenv:8888)
+        if [ "$response" = "200" ]; then
+          echo "✅ httpenv is ready"
+          break
+        fi
+        echo "Waiting... ($i/30)"
+        sleep 2
+      done
+
+      echo "Running integration test..."
+      response=$(curl -s -o /dev/null -w '%{http_code}' http://httpenv:8888)
       if [ "$response" = "200" ]; then
-        echo '✅ Integration test passed (HTTP 200 OK)';
+        echo "✅ Integration test passed (HTTP 200 OK)"
       else
-        echo '❌ Integration test failed (status $response)';
-        exit 1;
+        echo "❌ Integration test failed (status $response)"
+        exit 1
       fi
 
 networks:
