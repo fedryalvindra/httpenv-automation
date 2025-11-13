@@ -8,75 +8,87 @@ on:
 
 jobs:
   build-test-image:
-    name: Build Image For Testing
+    name: Build Test Image & Push to GHCR
     runs-on: ubuntu-latest
-    permissions: 
+    permissions:
       packages: write
     steps:
-      - name: Set up docker QEMU
+      - uses: actions/checkout@v3
+
+      - name: Set up QEMU
         uses: docker/setup-qemu-action@v3
-      - name: Set up docker buildx
+
+      - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v3
-      - name: Login to Docker Hub
+
+      - name: Login to GHCR
         uses: docker/login-action@v3
         with:
-          username: ${{ secrets.DOCKERHUB_USERNAME }}
-          password: ${{ secrets.DOCKERHUB_TOKEN }}
-      - name: Build Test Docker Image
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Build & push test image
         uses: docker/build-push-action@v6
         with:
-          push: false
-          load: true
-          tags: ${{ github.run_id }}
+          push: true
+          tags: ghcr.io/${{ github.repository }}/httpenv-automation:${{ github.run_id }}
           target: test
           cache-from: type=gha
           cache-to: type=gha,mode=max
           platforms: linux/amd64
-    
+
   unit-test:
-    name: Unit tests in Docker
-    needs: [build-test-image]
+    name: Unit Tests in GHCR Image
+    needs: build-test-image
     runs-on: ubuntu-latest
     steps:
-      - name: Login to Docker Hub
+      - uses: actions/checkout@v3
+
+      - name: Login to GHCR
         uses: docker/login-action@v3
         with:
-          username: ${{ secrets.DOCKERHUB_USERNAME }}
-          password: ${{ secrets.DOCKERHUB_TOKEN }}
-      
-      - name: Unit Testing in Docker
-        run: docker run --rm ${{ github.run_id }} echo "run test commands here"
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Run unit tests
+        run: docker run --rm ghcr.io/${{ github.repository }}/httpenv-automation:${{ github.run_id }} echo "Run unit test"
 
   integration-test:
-    name: Integration tests in Docker
-    needs: [build-test-image]
+    name: Integration Tests via Docker Compose
+    needs: build-test-image
     runs-on: ubuntu-latest
-    steps: 
-      - name: Login to Docker Hub
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: Login to GHCR
         uses: docker/login-action@v3
         with:
-          username: ${{ secrets.DOCKERHUB_USERNAME }}
-          password: ${{ secrets.DOCKERHUB_TOKEN }}
-      - name: Integration Testing in Docker
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Set TESTING_IMAGE env
+        run: echo "TESTING_IMAGE=ghcr.io/${{ github.repository }}/httpenv-automation:${{ github.run_id }}" > .env
+
+      - name: Run integration tests
         run: |
-          echo "TESTING_IMAGE=${{ github.run_id }}" > .env
           docker compose -f docker-compose.test.yml up --abort-on-container-exit --exit-code-from integration-test
           docker compose -f docker-compose.test.yml down
 
   scan-image:
-    name: Scanning image in Docker
-    needs: [build-test-image]
+    name: Scan Test Image
+    needs: build-test-image
     runs-on: ubuntu-latest
-    steps: 
-      - name: Login to Docker Hub
+    steps:
+      - name: Login to GHCR
         uses: docker/login-action@v3
         with:
-          username: ${{ secrets.DOCKERHUB_USERNAME }}
-          password: ${{ secrets.DOCKERHUB_TOKEN }} 
-      - name: Run Trivy for all CVEs (non-blocking)
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Run Trivy for CVEs
         uses: aquasecurity/trivy-action@master
         with:
-          image-ref: ${{ github.run_id }}
+          image-ref: ghcr.io/${{ github.repository }}/httpenv-automation:${{ github.run_id }}
           format: table
           exit-code: 0
     
