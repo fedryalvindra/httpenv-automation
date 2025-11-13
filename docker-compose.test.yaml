@@ -10,6 +10,7 @@ services:
       retries: 10
     networks:
       - testnet
+    command: ["/httpenv"]
 
   integration-test:
     image: curlimages/curl:8.5.0
