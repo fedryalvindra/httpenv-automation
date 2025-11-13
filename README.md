@@ -1,10 +1,6 @@
 # httpenv
 Tiny HTTP server showing the environment variables on TCP 8888.
 
-[![Lint Code Base](https://github.com/BretFisher/httpenv/actions/workflows/call-super-linter.yaml/badge.svg)](https://github.com/BretFisher/httpenv/actions/workflows/call-super-linter.yaml)
-[![Docker Build](https://github.com/BretFisher/httpenv/actions/workflows/call-docker-build.yaml/badge.svg)](https://github.com/BretFisher/httpenv/actions/workflows/call-docker-build.yaml)
-
-
 Images for `linux/x86_64` (amd64), `linux/arm64` (v8), and `linux/arm/v7`
 
 This can be used for various container learnings like how DNS round-robin works, rolling updates, etc.
@@ -13,11 +9,11 @@ a way to check which container you're seeing in browser (or `curl`) by viewing t
 
 Run it from Docker Hub on host port 8888:
 
-`docker run -d -p 8888:8888 bretfisher/httpenv`
+`docker run -d -p 8888:8888 fedryalvindra/httpenv`
 
 or from GitHub Container Registry (GHCR) with:
 
-`docker run -d -p 8888:8888 ghcr.io/bretfisher/httpenv`
+`docker run -d -p 8888:8888 ghcr.io/fedryalvindra/httpenv`
 
 If you `curl` it, you should get back its environment variables, including the container name:
 

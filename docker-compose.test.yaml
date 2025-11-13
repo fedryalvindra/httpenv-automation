@@ -1,0 +1,37 @@
+version: "3.9"
+
+services:
+  httpenv:
+    image: "${TESTING_IMAGE}"
+    container_name: httpenv-app
+    ports:
+      - "8888:8888"
+    healthcheck:
+      test: ["CMD", "wget", "-qO-", "http://localhost:8888"]
+      interval: 5s
+      timeout: 3s
+      retries: 5
+    networks:
+      - testnet
+
+  integration-test:
+    image: curlimages/curl:8.5.0
+    depends_on:
+      httpenv:
+        condition: service_healthy
+    networks:
+      - testnet
+    entrypoint: ["/bin/sh", "-c"]
+    command: >
+      "echo 'Running integration test...';
+       response=$(curl -s -o /dev/null -w '%{http_code}' http://httpenv:8888);
+       if [ \"$response\" = \"200\" ]; then
+         echo '✅ Integration test passed (HTTP 200 OK)';
+       else
+         echo '❌ Integration test failed (status $response)';
+         exit 1;
+       fi"
+
+networks:
+  testnet:
+    driver: bridge
