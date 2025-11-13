@@ -69,12 +69,10 @@ jobs:
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Set TESTING_IMAGE env
-        run: export TESTING_IMAGE=ghcr.io/${{ github.repository }}/httpenv-automation:${{ github.run_id }}
-
       - name: Run integration tests
         run: |
-          echo Testing image: "$TESTING_IMAGE"
+          export TESTING_IMAGE=ghcr.io/${{ github.repository }}/httpenv-automation:${{ github.run_id }}
+          echo "Testing image: $TESTING_IMAGE"
           docker compose -f docker-compose.test.yaml up --exit-code-from integration-test
 
   scan-image:
