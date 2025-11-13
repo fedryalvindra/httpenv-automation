@@ -1,34 +1,33 @@
 services:
-  httpenv:
+  httpenv-app:
     image: "${TESTING_IMAGE}"
     container_name: httpenv-app
     ports:
       - "8888:8888"
     healthcheck:
-      test: ["CMD-SHELL", "curl -f http://localhost:8888 || exit 0"]
+      test: ["CMD", "curl", "-f", "http://localhost:8888"]
       interval: 5s
-      timeout: 3s
       retries: 5
+      timeout: 3s
     networks:
       - testnet
 
   integration-test:
     image: curlimages/curl:8.5.0
     depends_on:
-      httpenv:
+      httpenv-app:
         condition: service_healthy
     networks:
       - testnet
     entrypoint: ["/bin/sh", "-c"]
     command: |
-      echo "Running integration test..."
-      response=$(curl -s -o /dev/null -w '%{http_code}' http://httpenv:8888)
+      echo 'Running integration test...';
+      response=$(curl -s -o /dev/null -w '%{http_code}' http://httpenv-app:8888);
       if [ "$response" = "200" ]; then
-        echo "✅ Integration test passed (HTTP 200 OK)"
-        exit 0
+        echo '✅ Integration test passed (HTTP 200 OK)';
       else
-        echo "❌ Integration test failed (status $response)"
-        exit 1
+        echo '❌ Integration test failed (status $response)';
+        exit 1;
       fi
 
 networks:
