@@ -74,8 +74,8 @@ jobs:
 
       - name: Run integration tests
         run: |
-          docker compose -f docker-compose.test.yaml up --abort-on-container-exit --exit-code-from integration-test
-          docker compose -f docker-compose.test.yaml down || true
+          echo Testing image: "$TESTING_IMAGE"
+          docker compose -f docker-compose.test.yaml up --exit-code-from integration-test
 
   scan-image:
     name: Scan Test Image
