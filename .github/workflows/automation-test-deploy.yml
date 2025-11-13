@@ -70,7 +70,7 @@ jobs:
           password: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Set TESTING_IMAGE env
-        run: echo "TESTING_IMAGE=ghcr.io/${{ github.repository }}/httpenv-automation:${{ github.run_id }}" > .env
+        run: export TESTING_IMAGE=ghcr.io/${{ github.repository }}/httpenv-automation:${{ github.run_id }}
 
       - name: Run integration tests
         run: |
